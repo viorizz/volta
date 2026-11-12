@@ -1,5 +1,6 @@
 mod auth;
 mod charges;
+mod crypto;
 mod error;
 mod expenses;
 mod fixed_costs;
@@ -115,11 +116,20 @@ async fn main() -> anyhow::Result<()> {
         .context("connexion à PostgreSQL")?;
     sqlx::migrate!().run(&db).await.context("migrations")?;
 
-    let tesla = tesla::TeslaConfig::from_env().map(Arc::new);
-    match &tesla {
-        Some(t) => tracing::info!("intégration Tesla active ({})", t.api_base),
-        None => tracing::info!("intégration Tesla inactive (TESLA_CLIENT_ID / TESLA_CLIENT_SECRET / PUBLIC_URL absents)"),
-    }
+    let tesla = match tesla::TeslaConfig::from_env() {
+        Ok(Some(t)) => {
+            tracing::info!("intégration Tesla active ({})", t.api_base);
+            Some(Arc::new(t))
+        }
+        Ok(None) => {
+            tracing::info!("intégration Tesla inactive (TESLA_CLIENT_ID / TESLA_CLIENT_SECRET / PUBLIC_URL absents)");
+            None
+        }
+        Err(e) => {
+            tracing::error!("intégration Tesla désactivée : {e:#}");
+            None
+        }
+    };
     let state = AppState {
         db,
         cfg: Arc::new(cfg),
@@ -128,6 +138,9 @@ async fn main() -> anyhow::Result<()> {
         tesla_lock: Arc::new(Mutex::new(())),
         http: reqwest::Client::builder().timeout(std::time::Duration::from_secs(30)).build()?,
     };
+    if let Err(e) = tesla::encrypt_legacy_tokens(&state).await {
+        tracing::error!("chiffrement des jetons Tesla existants : {e:#}");
+    }
     tesla::spawn_auto_sync(state.clone());
     let addr = env::var("BIND_ADDR").unwrap_or_else(|_| "0.0.0.0:8080".into());
     let listener = tokio::net::TcpListener::bind(&addr).await?;

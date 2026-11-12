@@ -16,7 +16,7 @@ use rand::RngCore;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::{auth::AuthUser, error::bad_request, error::AppResult, AppState};
+use crate::{auth::AuthUser, crypto::TokenCipher, error::bad_request, error::AppResult, AppState};
 
 const AUTHORIZE_URL: &str = "https://auth.tesla.com/oauth2/v3/authorize";
 const TOKEN_URL: &str = "https://fleet-auth.prd.vn.cloud.tesla.com/oauth2/v3/token";
@@ -32,23 +32,29 @@ pub struct TeslaConfig {
     pub redirect_uri: String,
     pub domain: String,
     pub api_base: String,
+    pub cipher: TokenCipher,
 }
 
 impl TeslaConfig {
-    /// Lit la configuration ; `None` si l'intégration n'est pas configurée.
-    pub fn from_env() -> Option<Self> {
-        let client_id = env::var("TESLA_CLIENT_ID").ok().filter(|v| !v.is_empty())?;
-        let client_secret = env::var("TESLA_CLIENT_SECRET").ok().filter(|v| !v.is_empty())?;
-        let public_url = env::var("PUBLIC_URL").ok().filter(|v| !v.is_empty())?;
+    /// Lit la configuration : `Ok(None)` si l'intégration n'est pas configurée,
+    /// une erreur si elle l'est mais sans clé de chiffrement valide.
+    pub fn from_env() -> anyhow::Result<Option<Self>> {
+        let var = |k: &str| env::var(k).ok().filter(|v| !v.is_empty());
+        let (Some(client_id), Some(client_secret), Some(public_url)) = (var("TESLA_CLIENT_ID"), var("TESLA_CLIENT_SECRET"), var("PUBLIC_URL")) else {
+            return Ok(None);
+        };
+        let key = var("TOKEN_ENCRYPTION_KEY").ok_or_else(|| anyhow!("TOKEN_ENCRYPTION_KEY manquant : les jetons Tesla doivent être chiffrés"))?;
+        let cipher = TokenCipher::from_base64(&key)?;
         let public_url = public_url.trim_end_matches('/').to_string();
         let domain = public_url.trim_start_matches("https://").trim_start_matches("http://").to_string();
-        Some(Self {
+        Ok(Some(Self {
             client_id,
             client_secret,
             redirect_uri: format!("{public_url}/api/tesla/callback"),
             domain,
             api_base: env::var("TESLA_API_BASE").unwrap_or_else(|_| DEFAULT_API_BASE.into()),
-        })
+            cipher,
+        }))
     }
 }
 
@@ -178,13 +184,15 @@ async fn handle_callback(s: &AppState, q: Callback) -> anyhow::Result<()> {
         ],
     )
     .await?;
+    let access = c.cipher.encrypt(&tok.access_token, "access_token")?;
+    let refresh = c.cipher.encrypt(&tok.refresh_token, "refresh_token")?;
     sqlx::query!(
         r#"INSERT INTO tesla_auth (id, access_token, refresh_token, expires_at, connected_at)
            VALUES (1, $1, $2, now() + make_interval(secs => $3), now())
            ON CONFLICT (id) DO UPDATE SET access_token = $1, refresh_token = $2,
                expires_at = now() + make_interval(secs => $3), connected_at = now(), last_error = NULL"#,
-        tok.access_token,
-        tok.refresh_token,
+        access,
+        refresh,
         tok.expires_in as f64
     )
     .execute(&s.db)
@@ -215,18 +223,19 @@ async fn access_token(s: &AppState, c: &TeslaConfig) -> anyhow::Result<String> {
         .await?
         .ok_or_else(|| anyhow!("Compte Tesla non connecté"))?;
     if row.expires_at > Utc::now() + chrono::Duration::minutes(5) {
-        return Ok(row.access_token);
+        return c.cipher.decrypt(&row.access_token, "access_token");
     }
+    let refresh_token = c.cipher.decrypt(&row.refresh_token, "refresh_token")?;
     let tok = token_request(
         &s.http,
-        &[("grant_type", "refresh_token"), ("client_id", &c.client_id), ("refresh_token", &row.refresh_token)],
+        &[("grant_type", "refresh_token"), ("client_id", &c.client_id), ("refresh_token", &refresh_token)],
     )
     .await
     .context("rafraîchissement du jeton Tesla (reconnecte le compte si l'erreur persiste)")?;
     sqlx::query!(
         "UPDATE tesla_auth SET access_token = $1, refresh_token = $2, expires_at = now() + make_interval(secs => $3) WHERE id = 1",
-        tok.access_token,
-        tok.refresh_token,
+        c.cipher.encrypt(&tok.access_token, "access_token")?,
+        c.cipher.encrypt(&tok.refresh_token, "refresh_token")?,
         tok.expires_in as f64
     )
     .execute(&s.db)
@@ -432,6 +441,27 @@ pub async fn sync_now(_: AuthUser, State(s): State<AppState>) -> AppResult<Json<
     sync(&s).await.map(Json).map_err(|e| bad_request(format!("{e:#}")))
 }
 
+/// Chiffre les jetons enregistrés en clair par une version précédente.
+pub async fn encrypt_legacy_tokens(s: &AppState) -> anyhow::Result<()> {
+    let Some(c) = s.tesla.as_deref() else { return Ok(()) };
+    let Some(row) = sqlx::query!("SELECT access_token, refresh_token FROM tesla_auth WHERE id = 1").fetch_optional(&s.db).await? else {
+        return Ok(());
+    };
+    if TokenCipher::is_encrypted(&row.access_token) && TokenCipher::is_encrypted(&row.refresh_token) {
+        return Ok(());
+    }
+    let enc = |v: &str, aad: &str| if TokenCipher::is_encrypted(v) { Ok(v.to_string()) } else { c.cipher.encrypt(v, aad) };
+    sqlx::query!(
+        "UPDATE tesla_auth SET access_token = $1, refresh_token = $2 WHERE id = 1",
+        enc(&row.access_token, "access_token")?,
+        enc(&row.refresh_token, "refresh_token")?
+    )
+    .execute(&s.db)
+    .await?;
+    tracing::info!("jetons Tesla existants chiffrés");
+    Ok(())
+}
+
 /// Synchronisation automatique toutes les 12 heures.
 pub fn spawn_auto_sync(s: AppState) {
     if s.tesla.is_none() {
@@ -461,7 +491,7 @@ pub fn spawn_auto_sync(s: AppState) {
 /// Prérequis : la clé publique est servie sur
 /// https://<domaine>/.well-known/appspecific/com.tesla.3p.public-key.pem
 pub async fn register_cli() -> anyhow::Result<()> {
-    let c = TeslaConfig::from_env().ok_or_else(|| anyhow!("TESLA_CLIENT_ID, TESLA_CLIENT_SECRET et PUBLIC_URL sont requis"))?;
+    let c = TeslaConfig::from_env()?.ok_or_else(|| anyhow!("TESLA_CLIENT_ID, TESLA_CLIENT_SECRET et PUBLIC_URL sont requis"))?;
     let http = reqwest::Client::new();
     let key_url = format!("https://{}/.well-known/appspecific/com.tesla.3p.public-key.pem", c.domain);
     let key = http.get(&key_url).send().await?;

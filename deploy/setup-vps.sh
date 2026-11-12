@@ -37,6 +37,7 @@ if [[ ! -f /opt/volta/.env ]]; then
 DOMAIN=$DOMAIN
 POSTGRES_PASSWORD=$(openssl rand -hex 24)
 ADMIN_PASSWORD_HASH='$HASH'
+TOKEN_ENCRYPTION_KEY=$(openssl rand -base64 32)
 ENV
   chown deploy:deploy /opt/volta/.env
   chmod 600 /opt/volta/.env

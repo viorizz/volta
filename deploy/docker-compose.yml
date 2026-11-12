@@ -28,6 +28,8 @@ services:
       # Optionnels : l'intégration Tesla reste inactive tant qu'ils sont vides.
       TESLA_CLIENT_ID: ${TESLA_CLIENT_ID:-}
       TESLA_CLIENT_SECRET: ${TESLA_CLIENT_SECRET:-}
+      # Chiffre les jetons Tesla en base (généré sur le serveur au déploiement).
+      TOKEN_ENCRYPTION_KEY: ${TOKEN_ENCRYPTION_KEY:-}
     depends_on:
       db:
         condition: service_healthy

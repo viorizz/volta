@@ -89,6 +89,8 @@ Importe automatiquement l'historique Supercharger (endpoint `charging_history`),
    ```
 5. Dans Volta : *Réglages → Connecter mon compte Tesla*.
 
+Les jetons Tesla sont chiffrés en base (AES-256-GCM) avec `TOKEN_ENCRYPTION_KEY`, générée automatiquement dans `/opt/volta/.env` au premier déploiement. Les sauvegardes de la base ne contiennent donc pas de jeton lisible. Si la clé est perdue ou changée, il suffit de reconnecter le compte Tesla.
+
 ## À venir
 
 - Export CSV, budget annuel.
