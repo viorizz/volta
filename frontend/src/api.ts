@@ -42,9 +42,32 @@ export interface Settings {
   leasing_interest_rate: number | null;
   leasing_start_date: string | null;
   leasing_months: number | null;
+  leasing_residual_cents: number | null;
+  leasing_km_per_year: number | null;
+  leasing_excess_cents_per_km: number | null;
+  estimated_value_cents: number | null;
+  estimate_home_charging: boolean;
+  consumption_kwh_per_100km: number;
+  charging_losses_pct: number;
+  monthly_budget_cents: number | null;
 }
 
-export type FixedKind = "insurance" | "vehicle_option" | "charging_subscription" | "other";
+export interface Reminder {
+  id: string;
+  title: string;
+  due_on: string | null;
+  due_km: number | null;
+  repeat_months: number | null;
+  repeat_km: number | null;
+  notes: string;
+  last_done_on: string | null;
+  status: "overdue" | "soon" | "later";
+  days_left: number | null;
+  km_left: number | null;
+}
+export type ReminderInput = Pick<Reminder, "title" | "due_on" | "due_km" | "repeat_months" | "repeat_km" | "notes">;
+
+export type FixedKind = "insurance" | "vehicle_option" | "charging_subscription" | "tax" | "other";
 export type Coverage = "liability" | "partial" | "full";
 export interface FixedCost {
   id: string;
@@ -60,7 +83,16 @@ export interface FixedCost {
 export type FixedCostInput = Omit<FixedCost, "id">;
 
 export interface Group { key: string; cost_cents: number; energy_kwh: number; count: number }
-export interface Month { month: string; charge_cost_cents: number; energy_kwh: number; expense_cents: number; fixed_cents: number; fuel_equivalent_cents: number | null }
+export interface Month {
+  month: string;
+  charge_cost_cents: number;
+  energy_kwh: number;
+  estimated_home_cents: number;
+  expense_cents: number;
+  fixed_cents: number;
+  distance_km: number | null;
+  fuel_equivalent_cents: number | null;
+}
 export interface Stats {
   currency: string;
   from: string | null;
@@ -80,6 +112,8 @@ export interface Stats {
     distance_is_estimate: boolean;
     km_per_kwh: number | null;
     efficiency_plausible: boolean;
+    estimated_home_kwh: number;
+    estimated_home_cents: number;
     electric_cost_cents: number;
     fuel_cost_cents: number | null;
     savings_cents: number | null;
@@ -87,6 +121,27 @@ export interface Stats {
     fuel_per_100km_cents: number;
   };
   monthly: Month[];
+  leasing: {
+    end_date: string;
+    km_driven: number;
+    km_allowed_total: number;
+    km_allowed_to_date: number;
+    projected_km: number | null;
+    projected_excess_km: number | null;
+    projected_excess_cents: number | null;
+    residual_cents: number | null;
+  } | null;
+  ownership: {
+    since: string;
+    months: number;
+    total_km: number | null;
+    running_cents: number;
+    depreciation_cents: number | null;
+    total_cents: number;
+    per_month_cents: number;
+    per_km_cents: number | null;
+  } | null;
+  budget: { month: string; budget_cents: number; spent_cents: number } | null;
 }
 
 export interface TeslaStatus {
@@ -153,12 +208,19 @@ export const api = {
   updateFixedCost: (id: string, f: FixedCostInput) => request<FixedCost>("PUT", `/fixed-costs/${id}`, f),
   deleteFixedCost: (id: string) => request<void>("DELETE", `/fixed-costs/${id}`),
 
+  reminders: () => request<Reminder[]>("GET", "/reminders"),
+  createReminder: (r: ReminderInput) => request<void>("POST", "/reminders", r),
+  updateReminder: (id: string, r: ReminderInput) => request<void>("PUT", `/reminders/${id}`, r),
+  deleteReminder: (id: string) => request<void>("DELETE", `/reminders/${id}`),
+  reminderDone: (id: string) => request<void>("POST", `/reminders/${id}/done`),
+  addOdometer: (km: number) => request<void>("POST", "/odometer", { km }),
+
   settings: () => request<Settings>("GET", "/settings"),
   saveSettings: (s: Settings) => request<Settings>("PUT", "/settings", s),
 
   teslaStatus: () => request<TeslaStatus>("GET", "/tesla/status"),
   teslaConnect: () => request<{ url: string }>("POST", "/tesla/connect"),
-  teslaSync: () => request<{ received: number; inserted: number; updated: number }>("POST", "/tesla/sync"),
+  teslaSync: () => request<{ received: number; inserted: number; updated: number; odometer_km: number | null }>("POST", "/tesla/sync"),
   teslaDisconnect: () => request<void>("POST", "/tesla/disconnect"),
 
   stats: (from?: string) => request<Stats>("GET", `/stats${qs({ from })}`),

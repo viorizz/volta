@@ -13,6 +13,8 @@ const n2 = nf(2, 2);
 export const money = (cents: number) => n2.format(cents / 100);
 /** Montant arrondi au franc pour les grands chiffres. */
 export const moneyRound = (cents: number) => n0.format(Math.round(cents / 100));
+/** Pour les tuiles : centimes jusqu'à 1 000, francs arrondis au-delà. */
+export const tileMoney = (cents: number) => (Math.abs(cents) >= 100_000 ? moneyRound(cents) : money(cents));
 export const kwh = (v: number) => n1.format(v);
 export const km = (v: number) => n0.format(v);
 
@@ -67,6 +69,7 @@ export const FIXED_KINDS: Record<FixedKind | "leasing", string> = {
   insurance: "Assurance",
   vehicle_option: "Options du véhicule",
   charging_subscription: "Abonnements de recharge",
+  tax: "Taxes & vignette",
   other: "Autres frais fixes",
 };
 /** Libellés courts pour les pastilles. */
@@ -74,6 +77,7 @@ export const FIXED_SHORT: Record<FixedKind, string> = {
   insurance: "Assurance",
   vehicle_option: "Option",
   charging_subscription: "Recharge",
+  tax: "Taxe",
   other: "Autre",
 };
 export const COVERAGES: Record<Coverage, string> = {

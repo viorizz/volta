@@ -359,6 +359,8 @@ pub struct SyncResult {
     received: usize,
     inserted: u64,
     updated: u64,
+    /// Kilométrage lu sur la voiture si elle était éveillée (on ne la réveille jamais).
+    odometer_km: Option<i32>,
 }
 
 /// Récupère tout l'historique et l'enregistre. Une recharge déjà importée est
@@ -389,7 +391,7 @@ async fn run_sync(s: &AppState) -> anyhow::Result<SyncResult> {
     let c = s.tesla.as_deref().ok_or_else(|| anyhow!("Intégration Tesla non configurée"))?;
     let token = access_token(s, c).await?;
     let currency = crate::settings::load(&s.db).await?.currency;
-    let mut res = SyncResult { received: 0, inserted: 0, updated: 0 };
+    let mut res = SyncResult { received: 0, inserted: 0, updated: 0, odometer_km: None };
     for page in 1..=MAX_PAGES {
         let r = s
             .http
@@ -433,7 +435,54 @@ async fn run_sync(s: &AppState) -> anyhow::Result<SyncResult> {
             break;
         }
     }
+    // Le kilométrage est un bonus : un échec (voiture endormie, permission) n'annule pas la synchro.
+    match read_odometer(s, c, &token).await {
+        Ok(km) => res.odometer_km = km,
+        Err(e) => tracing::info!(error = %format!("{e:#}"), "kilométrage Tesla non lu"),
+    }
     Ok(res)
+}
+
+const MILES_TO_KM: f64 = 1.609_344;
+
+/// Lit le compteur (toujours en miles dans l'API) des véhicules éveillés et
+/// l'enregistre comme relevé. Une voiture endormie n'est pas réveillée : ça
+/// viderait la batterie et coûterait une requête « wake ».
+async fn read_odometer(s: &AppState, c: &TeslaConfig, token: &str) -> anyhow::Result<Option<i32>> {
+    let list: Value = get_json(s, &format!("{}/api/1/vehicles", c.api_base), token).await?;
+    let vehicles = list["response"].as_array().cloned().unwrap_or_default();
+    let mut last = None;
+    for v in vehicles.iter().filter(|v| v["state"].as_str() == Some("online")) {
+        let Some(vin) = v["vin"].as_str() else { continue };
+        let data: Value = get_json(
+            s,
+            &format!("{}/api/1/vehicles/{vin}/vehicle_data?endpoints=vehicle_state", c.api_base),
+            token,
+        )
+        .await?;
+        if let Some(km) = odometer_km(&data) {
+            sqlx::query!("INSERT INTO odometer_readings (read_at, km, source) VALUES (now(), $1, 'tesla_api')", km)
+                .execute(&s.db)
+                .await?;
+            last = Some(km);
+        }
+    }
+    Ok(last)
+}
+
+pub fn odometer_km(data: &Value) -> Option<i32> {
+    let miles = data["response"]["vehicle_state"]["odometer"].as_f64()?;
+    (miles > 0.0).then(|| (miles * MILES_TO_KM).round() as i32)
+}
+
+async fn get_json(s: &AppState, url: &str, token: &str) -> anyhow::Result<Value> {
+    let r = s.http.get(url).bearer_auth(token).send().await?;
+    let status = r.status();
+    let body = r.text().await?;
+    if !status.is_success() {
+        bail!("{status} : {}", truncate(&body, 200));
+    }
+    Ok(serde_json::from_str(&body)?)
 }
 
 pub async fn sync_now(_: AuthUser, State(s): State<AppState>) -> AppResult<Json<SyncResult>> {
@@ -569,6 +618,13 @@ mod tests {
         assert_eq!(b.external_id, "tesla:789");
         assert_eq!(b.energy_kwh, 15.0); // paliers additionnés quand usageBase = 0
         assert!(b.notes.contains("EUR"));
+    }
+
+    #[test]
+    fn odometer_is_converted_from_miles() {
+        let v: Value = serde_json::from_str(r#"{"response":{"vehicle_state":{"odometer":12427.42}}}"#).unwrap();
+        assert_eq!(odometer_km(&v), Some(20_000));
+        assert_eq!(odometer_km(&serde_json::json!({"response": {}})), None);
     }
 
     #[test]

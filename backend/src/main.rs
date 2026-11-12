@@ -4,6 +4,8 @@ mod crypto;
 mod error;
 mod expenses;
 mod fixed_costs;
+mod odometer;
+mod reminders;
 mod settings;
 mod stats;
 mod tesla;
@@ -51,6 +53,10 @@ pub fn router(state: AppState) -> Router {
         .route("/api/expenses/{id}", put(expenses::update).delete(expenses::remove))
         .route("/api/fixed-costs", get(fixed_costs::list).post(fixed_costs::create))
         .route("/api/fixed-costs/{id}", put(fixed_costs::update).delete(fixed_costs::remove))
+        .route("/api/reminders", get(reminders::list).post(reminders::create))
+        .route("/api/reminders/{id}", put(reminders::update).delete(reminders::remove))
+        .route("/api/reminders/{id}/done", post(reminders::done))
+        .route("/api/odometer", get(odometer::list).post(odometer::create))
         .route("/api/settings", get(settings::get).put(settings::put))
         .route("/api/stats", get(stats::get))
         .route("/api/tesla/status", get(tesla::status))

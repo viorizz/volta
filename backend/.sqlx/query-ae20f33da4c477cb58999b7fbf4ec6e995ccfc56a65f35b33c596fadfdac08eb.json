@@ -1,0 +1,36 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE settings SET vehicle_name = $1, purchase_date = $2, purchase_price_cents = $3, initial_odometer_km = $4,\n               current_odometer_km = $5, currency = $6, fuel_consumption_l_per_100km = $7, fuel_price_cents_per_l = $8,\n               home_price_cents_per_kwh = $9, acquisition_type = $10, leasing_down_payment_cents = $11,\n               leasing_monthly_cents = $12, leasing_interest_rate = $13, leasing_start_date = $14, leasing_months = $15,\n               leasing_residual_cents = $16, leasing_km_per_year = $17, leasing_excess_cents_per_km = $18,\n               estimated_value_cents = $19, estimate_home_charging = $20, consumption_kwh_per_100km = $21,\n               charging_losses_pct = $22, monthly_budget_cents = $23, updated_at = now()\n           WHERE id = 1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Date",
+        "Int8",
+        "Int4",
+        "Int4",
+        "Text",
+        "Float8",
+        "Int8",
+        "Int8",
+        "Text",
+        "Int8",
+        "Int8",
+        "Float8",
+        "Date",
+        "Int4",
+        "Int8",
+        "Int4",
+        "Int8",
+        "Int8",
+        "Bool",
+        "Float8",
+        "Float8",
+        "Int8"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "ae20f33da4c477cb58999b7fbf4ec6e995ccfc56a65f35b33c596fadfdac08eb"
+}

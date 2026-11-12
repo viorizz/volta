@@ -13,6 +13,8 @@ const PRESETS: { label: string; draft: Draft }[] = [
   { label: "Conduite assistée · 99.–/mois", draft: { kind: "vehicle_option", label: "Conduite assistée", amount_cents: 9900, frequency: "monthly" } },
   { label: "Connectivité Premium · 12.99/mois", draft: { kind: "vehicle_option", label: "Connectivité Premium", amount_cents: 1299, frequency: "monthly" } },
   { label: "Joya · 11.90/mois", draft: { kind: "charging_subscription", label: "Joya", amount_cents: 1190, frequency: "monthly" } },
+  { label: "Vignette · 40.–/an", draft: { kind: "tax", label: "Vignette autoroutière", amount_cents: 4000, frequency: "yearly" } },
+  { label: "Impôt cantonal", draft: { kind: "tax", label: "Impôt cantonal sur les véhicules", frequency: "yearly" } },
 ];
 
 const isActive = (f: FixedCost) => !f.end_date || f.end_date >= localDate();
@@ -130,7 +132,7 @@ function FixedCostForm({ draft, settings, onDone }: { draft: Draft; settings: Se
       <Field label="Type">
         {(id) => (
           <select id={id} value={kind} onChange={(e) => setKind(e.target.value as FixedKind)}>
-            {(["insurance", "vehicle_option", "charging_subscription", "other"] as FixedKind[]).map((k) => (
+            {(["insurance", "vehicle_option", "charging_subscription", "tax", "other"] as FixedKind[]).map((k) => (
               <option key={k} value={k}>{FIXED_KINDS[k]}</option>
             ))}
           </select>

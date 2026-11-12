@@ -9,6 +9,11 @@ L'interface suit le design system **Volta** : thème sombre, grands chiffres fin
 - **Recharges** : saisie manuelle (Supercharger, maison, borne publique, autre), import CSV avec choix des colonnes et sans doublons au réimport. Le coût d'une recharge à la maison est calculé à partir du tarif du kWh.
 - **Dépenses** : pneus, entretien, assurance, taxes et vignette, accessoires, parking.
 - **Aperçu** : totaux par mois, par année ou depuis le début, économie face à l'essence, coût aux 100 km, graphique mensuel électricité/essence (avec vue tableau), répartition par réseau et par catégorie.
+- **Frais fixes et leasing** : assurance (RC, casco partielle ou complète), options du véhicule, abonnements de recharge, taxes et vignette ; leasing avec acompte, mensualité, taux, valeur résiduelle et km inclus (projection et coût des km en trop).
+- **Coût de possession** : total, par mois et par km, dépréciation comprise (achat).
+- **Entretien** : rappels par date et/ou kilométrage, récurrents (pneus, expertise, liquide de frein…), relevés du compteur, lu automatiquement sur la voiture si elle est éveillée.
+- **Recharge à domicile estimée** (option) : l'énergie nécessaire d'après les km parcourus, moins les recharges saisies.
+- **Budget mensuel** avec suivi sur l'aperçu.
 - **Comparatif honnête** : la distance vient du compteur. Si le rapport km/kWh n'est pas plausible (recharges manquantes), l'app le signale au lieu d'afficher une économie fausse.
 
 ## Stack
@@ -88,4 +93,4 @@ Les jetons Tesla sont chiffrés en base (AES-256-GCM) avec `TOKEN_ENCRYPTION_KEY
 
 ## À venir
 
-- Export CSV, budget annuel.
+- Export CSV.

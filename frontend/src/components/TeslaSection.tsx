@@ -54,7 +54,7 @@ export default function TeslaSection() {
   });
   const sync = () => run(async () => {
     const r = await api.teslaSync();
-    setMsg({ ok: true, text: `${r.received} session${r.received > 1 ? "s" : ""} reçue${r.received > 1 ? "s" : ""} · ${r.inserted} nouvelle${r.inserted > 1 ? "s" : ""} · ${r.updated} mise${r.updated > 1 ? "s" : ""} à jour` });
+    setMsg({ ok: true, text: `${r.received} session${r.received > 1 ? "s" : ""} reçue${r.received > 1 ? "s" : ""} · ${r.inserted} nouvelle${r.inserted > 1 ? "s" : ""} · ${r.updated} mise${r.updated > 1 ? "s" : ""} à jour${r.odometer_km ? ` · compteur ${r.odometer_km.toLocaleString("fr-CH")} km` : " · voiture endormie, compteur non lu"}` });
   });
   const disconnect = () => {
     if (confirm("Déconnecter le compte Tesla ? Les recharges déjà importées sont conservées.")) run(() => api.teslaDisconnect());

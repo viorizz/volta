@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO odometer_readings (read_at, km, source) VALUES (now(), $1, 'manual')",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "546112e3079e0d512f3df325791fa259597b147c2a3c3048f50fcf67ab0c7f5b"
+}

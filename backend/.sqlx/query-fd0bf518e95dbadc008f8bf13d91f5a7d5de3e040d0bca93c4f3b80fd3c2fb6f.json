@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT repeat_months, repeat_km FROM reminders WHERE id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "repeat_months",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "repeat_km",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      true,
+      true
+    ]
+  },
+  "hash": "fd0bf518e95dbadc008f8bf13d91f5a7d5de3e040d0bca93c4f3b80fd3c2fb6f"
+}

@@ -14,7 +14,7 @@ use uuid::Uuid;
 
 use crate::{auth::AuthUser, error::bad_request, error::AppError, error::AppResult, settings::Settings, AppState};
 
-const KINDS: [&str; 4] = ["insurance", "vehicle_option", "charging_subscription", "other"];
+const KINDS: [&str; 5] = ["insurance", "vehicle_option", "charging_subscription", "tax", "other"];
 const COVERAGES: [&str; 3] = ["liability", "partial", "full"];
 
 #[derive(Serialize, Clone)]
@@ -189,23 +189,7 @@ mod tests {
         NaiveDate::from_ymd_opt(y, m, day).unwrap()
     }
     fn settings() -> Settings {
-        Settings {
-            vehicle_name: "T".into(),
-            purchase_date: None,
-            purchase_price_cents: None,
-            initial_odometer_km: 0,
-            current_odometer_km: None,
-            currency: "CHF".into(),
-            fuel_consumption_l_per_100km: 7.0,
-            fuel_price_cents_per_l: 190,
-            home_price_cents_per_kwh: 27,
-            acquisition_type: "purchase".into(),
-            leasing_down_payment_cents: None,
-            leasing_monthly_cents: None,
-            leasing_interest_rate: None,
-            leasing_start_date: None,
-            leasing_months: None,
-        }
+        Settings::sample()
     }
     fn cost(kind: &str, amount: i64, freq: &str, start: NaiveDate, end: Option<NaiveDate>) -> FixedCost {
         FixedCost {

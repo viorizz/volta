@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT vehicle_name, purchase_date, purchase_price_cents, initial_odometer_km, current_odometer_km,\n                  currency, fuel_consumption_l_per_100km, fuel_price_cents_per_l, home_price_cents_per_kwh,\n                  acquisition_type, leasing_down_payment_cents, leasing_monthly_cents, leasing_interest_rate,\n                  leasing_start_date, leasing_months\n           FROM settings WHERE id = 1",
+  "query": "SELECT vehicle_name, purchase_date, purchase_price_cents, initial_odometer_km, current_odometer_km,\n                  currency, fuel_consumption_l_per_100km, fuel_price_cents_per_l, home_price_cents_per_kwh,\n                  acquisition_type, leasing_down_payment_cents, leasing_monthly_cents, leasing_interest_rate,\n                  leasing_start_date, leasing_months, leasing_residual_cents, leasing_km_per_year,\n                  leasing_excess_cents_per_km, estimated_value_cents, estimate_home_charging,\n                  consumption_kwh_per_100km, charging_losses_pct, monthly_budget_cents\n           FROM settings WHERE id = 1",
   "describe": {
     "columns": [
       {
@@ -77,6 +77,46 @@
         "ordinal": 14,
         "name": "leasing_months",
         "type_info": "Int4"
+      },
+      {
+        "ordinal": 15,
+        "name": "leasing_residual_cents",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 16,
+        "name": "leasing_km_per_year",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 17,
+        "name": "leasing_excess_cents_per_km",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 18,
+        "name": "estimated_value_cents",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 19,
+        "name": "estimate_home_charging",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 20,
+        "name": "consumption_kwh_per_100km",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 21,
+        "name": "charging_losses_pct",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 22,
+        "name": "monthly_budget_cents",
+        "type_info": "Int8"
       }
     ],
     "parameters": {
@@ -97,8 +137,16 @@
       true,
       true,
       true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
       true
     ]
   },
-  "hash": "c9f3e3310c03773d33a3d793e693324c582935dd1244b736798c316b7f9d5c3c"
+  "hash": "4c5eaee35a7660f238a0ab10b9990eff9be1a2318f7b3ea52f1bc04245f4f21b"
 }

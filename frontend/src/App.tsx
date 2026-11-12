@@ -7,16 +7,18 @@ import Overview from "./pages/Overview";
 import Charges from "./pages/Charges";
 import Expenses from "./pages/Expenses";
 import SettingsPage from "./pages/Settings";
+import Maintenance from "./pages/Maintenance";
 
-type Tab = "apercu" | "recharges" | "depenses" | "reglages";
+type Tab = "apercu" | "recharges" | "depenses" | "entretien" | "reglages";
 const TABS: { value: Tab; label: string }[] = [
   { value: "apercu", label: "Aperçu" },
   { value: "recharges", label: "Recharges" },
   { value: "depenses", label: "Dépenses" },
+  { value: "entretien", label: "Entretien" },
 ];
 const readHash = (): Tab => {
   const h = location.hash.slice(1) as Tab;
-  return ["apercu", "recharges", "depenses", "reglages"].includes(h) ? h : "apercu";
+  return ["apercu", "recharges", "depenses", "entretien", "reglages"].includes(h) ? h : "apercu";
 };
 
 export default function App() {
@@ -75,6 +77,7 @@ export default function App() {
         {tab === "apercu" && <Overview />}
         {tab === "recharges" && <Charges />}
         {tab === "depenses" && <Expenses />}
+        {tab === "entretien" && <Maintenance />}
         {tab === "reglages" && <SettingsPage onLogout={() => setAuth("out")} />}
       </main>
     </div>

@@ -1,0 +1,62 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, title, due_on, due_km, repeat_months, repeat_km, notes, last_done_on FROM reminders",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "title",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "due_on",
+        "type_info": "Date"
+      },
+      {
+        "ordinal": 3,
+        "name": "due_km",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 4,
+        "name": "repeat_months",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 5,
+        "name": "repeat_km",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 6,
+        "name": "notes",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 7,
+        "name": "last_done_on",
+        "type_info": "Date"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      false,
+      true
+    ]
+  },
+  "hash": "10b27f688fc1dd668259a3e84cf5a5f7d1f9987e549553fb7d2c32a42f2008ad"
+}

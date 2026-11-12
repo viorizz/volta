@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT (COALESCE((SELECT SUM(cost_cents) FROM charges WHERE (started_at AT TIME ZONE $2)::date >= $1), 0)\n                         + COALESCE((SELECT SUM(amount_cents) FROM expenses WHERE spent_on >= $1), 0))::bigint AS \"s!\"",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "s!",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Date",
+        "Text"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "abd1caf7d2987cd727cd7e4c2ed6f9a49fd1bf53f57ac5fffeafd2414646a770"
+}

@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO odometer_readings (read_at, km, source) VALUES (now(), $1, 'tesla_api')",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "225e0660cffb9a0eeb2d5ccf9bab8a26d50e6063fe561a9bcc7b09031e7d8726"
+}

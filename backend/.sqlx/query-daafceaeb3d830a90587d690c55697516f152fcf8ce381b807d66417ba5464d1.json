@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT read_at AT TIME ZONE $1 AS \"at!\", km::float8 AS \"km!\" FROM odometer_readings\n           UNION ALL SELECT started_at AT TIME ZONE $1, odometer_km::float8 FROM charges WHERE odometer_km IS NOT NULL\n           UNION ALL SELECT spent_on + time '12:00', odometer_km::float8 FROM expenses WHERE odometer_km IS NOT NULL",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "at!",
+        "type_info": "Timestamp"
+      },
+      {
+        "ordinal": 1,
+        "name": "km!",
+        "type_info": "Float8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      null,
+      null
+    ]
+  },
+  "hash": "daafceaeb3d830a90587d690c55697516f152fcf8ce381b807d66417ba5464d1"
+}

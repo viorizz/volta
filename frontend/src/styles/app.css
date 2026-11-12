@@ -99,3 +99,21 @@ button, input, select, textarea { font: inherit; color: inherit; }
 /* Dans un formulaire, le titre du contrôle segmenté prend le style des libellés de champ. */
 .form .vt-seg-field { gap: 6px; }
 .form .vt-seg-title { font: 400 13px/18px var(--font-sans); color: var(--ink-muted); }
+.reminder-trail { display: flex; align-items: center; gap: var(--space-1); }
+.reminder-trail .iconbtn { color: var(--ink-muted); }
+.reminder-trail .iconbtn:hover { color: var(--charge); }
+.meter { position: relative; height: 8px; border-radius: var(--radius-pill); background: var(--surface-2); overflow: hidden; margin-top: var(--space-2); }
+.meter > span { position: absolute; inset: 0 auto 0 0; border-radius: var(--radius-pill); background: var(--accent); }
+.meter.is-over > span { background: var(--danger); }
+.card { background: var(--surface-1); border-radius: var(--radius-lg); padding: var(--space-3); display: flex; flex-direction: column; gap: var(--space-1); }
+.card-row { display: flex; justify-content: space-between; gap: var(--space-3); font-variant-numeric: tabular-nums; }
+.tabs { max-width: 480px; }
+@media (max-width: 400px) { .tabs .vt-seg button { font-size: 14px; padding: 0 4px; } }
+@media (max-width: 519px) {
+  .grid { grid-template-columns: 1fr 1fr; }
+  .vt-stat { padding: 12px; }
+  .vt-stat-value { font-size: 26px; line-height: 30px; }
+  .vt-stat-unit { font-size: 12px; }
+  .vt-stat-label { font-size: 10px; letter-spacing: .06em; }
+}
+.form .vt-seg-hint { font-size: 13px; line-height: 18px; }
