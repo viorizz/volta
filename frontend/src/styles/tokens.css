@@ -1,0 +1,58 @@
+/* Volta — tokens issus du design system (tokens.json). Thème sombre par défaut. */
+:root, [data-theme="dark"] {
+  --surface-0: #000000;
+  --surface-1: #17181a;
+  --surface-2: #2a2b2f;
+  --hairline: #3a3b40;
+  --ink: #f5f5f7;
+  --ink-muted: #9a9ca3;
+  --accent: #3368ff;
+  --on-accent: #ffffff;
+  --accent-disabled: #304682;
+  --on-accent-disabled: #7f838e;
+  --control: #2d2d2d;
+  --control-border: #2c2c2c;
+  --segment-track: #212121;
+  --segment-active: #353535;
+  --accent-ink: #7f9ef0;
+  --charge: #3ddc84;
+  --fuel: #f5a524;
+  --danger: #ff5a52;
+  --shadow-sheet: 0 -8px 32px rgba(0,0,0,0.6);
+  --chart-fuel: #c27a0e; /* série essence des graphiques, validée CVD */
+}
+[data-theme="light"] {
+  --surface-0: #ffffff;
+  --surface-1: #f4f4f5;
+  --surface-2: #e4e5e8;
+  --hairline: #d4d5d9;
+  --ink: #171a20;
+  --ink-muted: #5c5e62;
+  --accent: #3368ff;
+  --on-accent: #ffffff;
+  --accent-disabled: #b9c8f5;
+  --on-accent-disabled: #5c6680;
+  --control: #e4e5e8;
+  --control-border: #d4d5d9;
+  --segment-track: #e4e5e8;
+  --segment-active: #ffffff;
+  --accent-ink: #2f55c4;
+  --charge: #187a41;
+  --fuel: #a8600a;
+  --danger: #c8211b;
+  --shadow-sheet: 0 -8px 32px rgba(23,26,32,0.12);
+  --chart-fuel: #a8600a; /* série essence des graphiques, validée CVD */
+}
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --space-5: 40px;
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+  --font-sans: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+}

@@ -1,0 +1,49 @@
+# Copié sur le serveur dans /opt/volta à chaque déploiement.
+# Les secrets sont dans /opt/volta/.env (créé par setup-vps.sh, jamais versionné).
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: volta
+      POSTGRES_USER: volta
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?manquant dans .env}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U volta -d volta"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  api:
+    image: volta-api:${VOLTA_VERSION:-latest}
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://volta:${POSTGRES_PASSWORD}@db:5432/volta
+      ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH:?manquant dans .env}
+      APP_TIMEZONE: Europe/Zurich
+      RUST_LOG: volta_api=info,tower_http=info
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    image: volta-web:${VOLTA_VERSION:-latest}
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN:?manquant dans .env}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - api
+
+volumes:
+  db-data:
+  caddy-data:
+  caddy-config:

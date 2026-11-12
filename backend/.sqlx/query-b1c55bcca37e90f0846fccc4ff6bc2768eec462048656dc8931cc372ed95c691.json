@@ -1,0 +1,26 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT COALESCE((SELECT SUM(energy_kwh) FROM charges), 0)::float8 AS \"kwh!\",\n                  GREATEST((SELECT MAX(odometer_km) FROM charges), (SELECT MAX(odometer_km) FROM expenses)) AS max_odo",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "kwh!",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 1,
+        "name": "max_odo",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      null,
+      null
+    ]
+  },
+  "hash": "b1c55bcca37e90f0846fccc4ff6bc2768eec462048656dc8931cc372ed95c691"
+}

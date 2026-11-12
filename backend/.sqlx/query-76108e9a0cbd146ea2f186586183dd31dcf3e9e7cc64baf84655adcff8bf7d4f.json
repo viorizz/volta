@@ -1,0 +1,83 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE charges SET started_at = $2, network = $3, location = $4, energy_kwh = $5, cost_cents = $6, odometer_km = $7, notes = $8\n           WHERE id = $1\n           RETURNING id, started_at, network, location, energy_kwh, cost_cents, odometer_km, source, external_id, notes",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "started_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 2,
+        "name": "network",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "location",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "energy_kwh",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 5,
+        "name": "cost_cents",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 6,
+        "name": "odometer_km",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 7,
+        "name": "source",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 8,
+        "name": "external_id",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 9,
+        "name": "notes",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Timestamptz",
+        "Text",
+        "Text",
+        "Float8",
+        "Int8",
+        "Int4",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      true,
+      false
+    ]
+  },
+  "hash": "76108e9a0cbd146ea2f186586183dd31dcf3e9e7cc64baf84655adcff8bf7d4f"
+}

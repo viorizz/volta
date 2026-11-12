@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT to_char(spent_on, 'YYYY-MM') AS \"m!\", SUM(amount_cents)::bigint AS \"cost!\"\n           FROM expenses WHERE ($1::date IS NULL OR spent_on >= $1) GROUP BY 1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "m!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "cost!",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Date"
+      ]
+    },
+    "nullable": [
+      null,
+      null
+    ]
+  },
+  "hash": "3442a89ab5001ac57b4aaa56af36eec236cd497406a6a29d403e25d388f2469d"
+}
