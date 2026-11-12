@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO oauth_states (state, expires_at) VALUES ($1, now() + interval '10 minutes')",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "73695bfd8083edebed06b590bdb5044913caf289f18882de92f69831ed4f7d39"
+}

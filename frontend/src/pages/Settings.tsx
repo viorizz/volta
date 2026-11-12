@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { api, type Settings } from "../api";
 import { money, parseDecimal, parseMoney } from "../format";
 import { Button, Field } from "../ui";
+import TeslaSection from "../components/TeslaSection";
 
 type Form = Record<keyof Settings, string>;
 const toForm = (s: Settings): Form => ({
@@ -58,7 +59,9 @@ export default function SettingsPage({ onLogout }: { onLogout: () => void }) {
   };
 
   return (
-    <form className="form" onSubmit={submit} style={{ maxWidth: 520 }}>
+    <div style={{ maxWidth: 520, display: "flex", flexDirection: "column", gap: 40 }}>
+    <TeslaSection />
+    <form className="form" onSubmit={submit}>
       <h2 className="overline" style={{ margin: "8px 0 0" }}>Véhicule</h2>
       <Field label="Nom">{(id) => <input id={id} value={f.vehicle_name} onChange={set("vehicle_name")} required maxLength={100} />}</Field>
       <div className="form-row">
@@ -84,5 +87,6 @@ export default function SettingsPage({ onLogout }: { onLogout: () => void }) {
       <Button type="submit" disabled={busy}>Enregistrer</Button>
       <Button variant="danger" onClick={logout}>Se déconnecter</Button>
     </form>
+    </div>
   );
 }

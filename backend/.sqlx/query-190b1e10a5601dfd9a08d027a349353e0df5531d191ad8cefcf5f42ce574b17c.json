@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE tesla_auth SET last_sync_at = now(), last_sync_inserted = $1, last_error = NULL WHERE id = 1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "190b1e10a5601dfd9a08d027a349353e0df5531d191ad8cefcf5f42ce574b17c"
+}

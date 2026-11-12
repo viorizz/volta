@@ -66,6 +66,16 @@ export interface Stats {
   monthly: Month[];
 }
 
+export interface TeslaStatus {
+  configured: boolean;
+  connected: boolean;
+  redirect_uri: string | null;
+  connected_at: string | null;
+  last_sync_at: string | null;
+  last_sync_inserted: number | null;
+  last_error: string | null;
+}
+
 export class ApiError extends Error {
   constructor(public status: number, message: string) {
     super(message);
@@ -117,6 +127,11 @@ export const api = {
 
   settings: () => request<Settings>("GET", "/settings"),
   saveSettings: (s: Settings) => request<Settings>("PUT", "/settings", s),
+
+  teslaStatus: () => request<TeslaStatus>("GET", "/tesla/status"),
+  teslaConnect: () => request<{ url: string }>("POST", "/tesla/connect"),
+  teslaSync: () => request<{ received: number; inserted: number; updated: number }>("POST", "/tesla/sync"),
+  teslaDisconnect: () => request<void>("POST", "/tesla/disconnect"),
 
   stats: (from?: string) => request<Stats>("GET", `/stats${qs({ from })}`),
 };

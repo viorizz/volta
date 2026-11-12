@@ -12,6 +12,13 @@
 		-Server
 	}
 
+	# Clé publique exigée par Tesla pour prouver la propriété du domaine.
+	handle /.well-known/appspecific/com.tesla.3p.public-key.pem {
+		root * /tesla
+		rewrite * /com.tesla.3p.public-key.pem
+		file_server
+	}
+
 	handle /api/* {
 		reverse_proxy api:8080
 	}

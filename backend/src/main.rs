@@ -4,6 +4,7 @@ mod error;
 mod expenses;
 mod settings;
 mod stats;
+mod tesla;
 
 use std::{env, io::Read, sync::Arc};
 
@@ -30,6 +31,9 @@ pub struct AppState {
     pub db: PgPool,
     pub cfg: Arc<Config>,
     pub limiter: Arc<Mutex<auth::LoginLimiter>>,
+    pub tesla: Option<Arc<tesla::TeslaConfig>>,
+    pub tesla_lock: Arc<Mutex<()>>,
+    pub http: reqwest::Client,
 }
 
 pub fn router(state: AppState) -> Router {
@@ -45,6 +49,11 @@ pub fn router(state: AppState) -> Router {
         .route("/api/expenses/{id}", put(expenses::update).delete(expenses::remove))
         .route("/api/settings", get(settings::get).put(settings::put))
         .route("/api/stats", get(stats::get))
+        .route("/api/tesla/status", get(tesla::status))
+        .route("/api/tesla/connect", post(tesla::connect))
+        .route("/api/tesla/callback", get(tesla::callback))
+        .route("/api/tesla/sync", post(tesla::sync_now))
+        .route("/api/tesla/disconnect", post(tesla::disconnect))
         .layer(DefaultBodyLimit::max(4 * 1024 * 1024))
         .layer(TraceLayer::new_for_http())
         .with_state(state)
@@ -78,8 +87,10 @@ async fn shutdown_signal() {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    if env::args().nth(1).as_deref() == Some("hash-password") {
-        return hash_password();
+    match env::args().nth(1).as_deref() {
+        Some("hash-password") => return hash_password(),
+        Some("tesla-register") => return tesla::register_cli().await,
+        _ => {}
     }
 
     tracing_subscriber::fmt()
@@ -101,7 +112,20 @@ async fn main() -> anyhow::Result<()> {
         .context("connexion à PostgreSQL")?;
     sqlx::migrate!().run(&db).await.context("migrations")?;
 
-    let state = AppState { db, cfg: Arc::new(cfg), limiter: Arc::new(Mutex::new(auth::LoginLimiter::new())) };
+    let tesla = tesla::TeslaConfig::from_env().map(Arc::new);
+    match &tesla {
+        Some(t) => tracing::info!("intégration Tesla active ({})", t.api_base),
+        None => tracing::info!("intégration Tesla inactive (TESLA_CLIENT_ID / TESLA_CLIENT_SECRET / PUBLIC_URL absents)"),
+    }
+    let state = AppState {
+        db,
+        cfg: Arc::new(cfg),
+        limiter: Arc::new(Mutex::new(auth::LoginLimiter::new())),
+        tesla,
+        tesla_lock: Arc::new(Mutex::new(())),
+        http: reqwest::Client::builder().timeout(std::time::Duration::from_secs(30)).build()?,
+    };
+    tesla::spawn_auto_sync(state.clone());
     let addr = env::var("BIND_ADDR").unwrap_or_else(|_| "0.0.0.0:8080".into());
     let listener = tokio::net::TcpListener::bind(&addr).await?;
     tracing::info!("API à l'écoute sur {addr}");

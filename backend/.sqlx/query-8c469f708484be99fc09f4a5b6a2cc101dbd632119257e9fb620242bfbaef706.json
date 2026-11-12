@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE tesla_auth SET access_token = $1, refresh_token = $2, expires_at = now() + make_interval(secs => $3) WHERE id = 1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Float8"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "8c469f708484be99fc09f4a5b6a2cc101dbd632119257e9fb620242bfbaef706"
+}

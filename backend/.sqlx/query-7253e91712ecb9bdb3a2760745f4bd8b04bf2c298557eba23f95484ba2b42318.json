@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO tesla_auth (id, access_token, refresh_token, expires_at, connected_at)\n           VALUES (1, $1, $2, now() + make_interval(secs => $3), now())\n           ON CONFLICT (id) DO UPDATE SET access_token = $1, refresh_token = $2,\n               expires_at = now() + make_interval(secs => $3), connected_at = now(), last_error = NULL",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Float8"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "7253e91712ecb9bdb3a2760745f4bd8b04bf2c298557eba23f95484ba2b42318"
+}

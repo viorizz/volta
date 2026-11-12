@@ -24,6 +24,10 @@ services:
       ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH:?manquant dans .env}
       APP_TIMEZONE: Europe/Zurich
       RUST_LOG: volta_api=info,tower_http=info
+      PUBLIC_URL: https://${DOMAIN}
+      # Optionnels : l'intégration Tesla reste inactive tant qu'ils sont vides.
+      TESLA_CLIENT_ID: ${TESLA_CLIENT_ID:-}
+      TESLA_CLIENT_SECRET: ${TESLA_CLIENT_SECRET:-}
     depends_on:
       db:
         condition: service_healthy
@@ -40,6 +44,7 @@ services:
     volumes:
       - caddy-data:/data
       - caddy-config:/config
+      - ./tesla:/tesla:ro
     depends_on:
       - api
 

@@ -60,7 +60,35 @@ Les images sont compilées par GitHub Actions puis envoyées par SSH : rien ne c
 
 Sauvegardes : `/opt/volta/backups/`, 30 jours. Pour restaurer : `gunzip -c backups/volta-AAAA-MM-JJ.sql.gz | docker compose exec -T db psql -U volta volta`.
 
+## Connexion à l'API Tesla (Fleet API)
+
+Importe automatiquement l'historique Supercharger (endpoint `charging_history`), toutes les 12 heures ou à la demande depuis les Réglages. Les autres réseaux restent à saisir à la main.
+
+1. **Clé publique** : sur le VPS, en tant que `deploy` :
+   ```bash
+   mkdir -p /opt/volta/tesla && cd /opt/volta/tesla
+   openssl ecparam -name prime256v1 -genkey -noout -out private-key.pem
+   openssl ec -in private-key.pem -pubout -out com.tesla.3p.public-key.pem
+   chmod 600 private-key.pem
+   ```
+   Caddy la sert sur `https://<domaine>/.well-known/appspecific/com.tesla.3p.public-key.pem`. La clé privée ne sert qu'à envoyer des commandes à la voiture, ce que Volta ne fait pas ; elle reste sur le serveur.
+2. **Application** sur [developer.tesla.com](https://developer.tesla.com) (compte avec double authentification) :
+   - Allowed Origin : `https://<domaine>`
+   - Allowed Redirect URI : `https://<domaine>/api/tesla/callback`
+   - Scopes : *Vehicle Information* et *Vehicle Charging Management*
+   - Ajoute un moyen de paiement : sans lui, Tesla désactive l'application. Le crédit mensuel de 10 $ couvre largement un usage personnel.
+3. **Identifiants** : ajoute à `/opt/volta/.env`
+   ```
+   TESLA_CLIENT_ID=...
+   TESLA_CLIENT_SECRET=...
+   ```
+   puis `cd /opt/volta && docker compose up -d`.
+4. **Enregistrement du domaine** (une seule fois) :
+   ```bash
+   cd /opt/volta && docker compose run --rm api volta-api tesla-register
+   ```
+5. Dans Volta : *Réglages → Connecter mon compte Tesla*.
+
 ## À venir
 
-- Synchronisation des recharges Supercharger via l'API Tesla Fleet (nécessite le domaine pour héberger la clé publique).
 - Export CSV, budget annuel.
