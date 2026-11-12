@@ -36,10 +36,31 @@ export interface Settings {
   fuel_consumption_l_per_100km: number;
   fuel_price_cents_per_l: number;
   home_price_cents_per_kwh: number;
+  acquisition_type: "purchase" | "leasing";
+  leasing_down_payment_cents: number | null;
+  leasing_monthly_cents: number | null;
+  leasing_interest_rate: number | null;
+  leasing_start_date: string | null;
+  leasing_months: number | null;
 }
 
+export type FixedKind = "insurance" | "vehicle_option" | "charging_subscription" | "other";
+export type Coverage = "liability" | "partial" | "full";
+export interface FixedCost {
+  id: string;
+  kind: FixedKind;
+  label: string;
+  amount_cents: number;
+  frequency: "monthly" | "yearly";
+  start_date: string;
+  end_date: string | null;
+  coverage: Coverage | null;
+  notes: string;
+}
+export type FixedCostInput = Omit<FixedCost, "id">;
+
 export interface Group { key: string; cost_cents: number; energy_kwh: number; count: number }
-export interface Month { month: string; charge_cost_cents: number; energy_kwh: number; expense_cents: number; fuel_equivalent_cents: number | null }
+export interface Month { month: string; charge_cost_cents: number; energy_kwh: number; expense_cents: number; fixed_cents: number; fuel_equivalent_cents: number | null }
 export interface Stats {
   currency: string;
   from: string | null;
@@ -50,6 +71,8 @@ export interface Stats {
   expense_cents: number;
   expense_count: number;
   by_category: Group[];
+  fixed_cents: number;
+  by_fixed: Group[];
   total_cost_cents: number;
   purchase_price_cents: number | null;
   comparison: {
@@ -124,6 +147,11 @@ export const api = {
   createExpense: (e: ExpenseInput) => request<Expense>("POST", "/expenses", e),
   updateExpense: (id: string, e: ExpenseInput) => request<Expense>("PUT", `/expenses/${id}`, e),
   deleteExpense: (id: string) => request<void>("DELETE", `/expenses/${id}`),
+
+  fixedCosts: () => request<FixedCost[]>("GET", "/fixed-costs"),
+  createFixedCost: (f: FixedCostInput) => request<FixedCost>("POST", "/fixed-costs", f),
+  updateFixedCost: (id: string, f: FixedCostInput) => request<FixedCost>("PUT", `/fixed-costs/${id}`, f),
+  deleteFixedCost: (id: string) => request<void>("DELETE", `/fixed-costs/${id}`),
 
   settings: () => request<Settings>("GET", "/settings"),
   saveSettings: (s: Settings) => request<Settings>("PUT", "/settings", s),

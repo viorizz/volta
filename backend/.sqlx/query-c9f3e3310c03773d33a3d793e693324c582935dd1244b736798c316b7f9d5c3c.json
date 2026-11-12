@@ -1,0 +1,104 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT vehicle_name, purchase_date, purchase_price_cents, initial_odometer_km, current_odometer_km,\n                  currency, fuel_consumption_l_per_100km, fuel_price_cents_per_l, home_price_cents_per_kwh,\n                  acquisition_type, leasing_down_payment_cents, leasing_monthly_cents, leasing_interest_rate,\n                  leasing_start_date, leasing_months\n           FROM settings WHERE id = 1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "vehicle_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "purchase_date",
+        "type_info": "Date"
+      },
+      {
+        "ordinal": 2,
+        "name": "purchase_price_cents",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 3,
+        "name": "initial_odometer_km",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 4,
+        "name": "current_odometer_km",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 5,
+        "name": "currency",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "fuel_consumption_l_per_100km",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 7,
+        "name": "fuel_price_cents_per_l",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 8,
+        "name": "home_price_cents_per_kwh",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 9,
+        "name": "acquisition_type",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 10,
+        "name": "leasing_down_payment_cents",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 11,
+        "name": "leasing_monthly_cents",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 12,
+        "name": "leasing_interest_rate",
+        "type_info": "Float8"
+      },
+      {
+        "ordinal": 13,
+        "name": "leasing_start_date",
+        "type_info": "Date"
+      },
+      {
+        "ordinal": 14,
+        "name": "leasing_months",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      true,
+      true,
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "c9f3e3310c03773d33a3d793e693324c582935dd1244b736798c316b7f9d5c3c"
+}

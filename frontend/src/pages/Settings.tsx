@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { api, type Settings } from "../api";
 import { money, parseDecimal, parseMoney } from "../format";
-import { Button, Field } from "../ui";
+import { Button, Field, Segmented } from "../ui";
 import TeslaSection from "../components/TeslaSection";
 
 type Form = Record<keyof Settings, string>;
@@ -15,6 +15,12 @@ const toForm = (s: Settings): Form => ({
   fuel_consumption_l_per_100km: String(s.fuel_consumption_l_per_100km),
   fuel_price_cents_per_l: money(s.fuel_price_cents_per_l),
   home_price_cents_per_kwh: money(s.home_price_cents_per_kwh),
+  acquisition_type: s.acquisition_type,
+  leasing_down_payment_cents: s.leasing_down_payment_cents == null ? "" : money(s.leasing_down_payment_cents).replace(/\s/g, ""),
+  leasing_monthly_cents: s.leasing_monthly_cents == null ? "" : money(s.leasing_monthly_cents).replace(/\s/g, ""),
+  leasing_interest_rate: s.leasing_interest_rate == null ? "" : String(s.leasing_interest_rate),
+  leasing_start_date: s.leasing_start_date ?? "",
+  leasing_months: s.leasing_months == null ? "" : String(s.leasing_months),
 });
 
 export default function SettingsPage({ onLogout }: { onLogout: () => void }) {
@@ -32,6 +38,7 @@ export default function SettingsPage({ onLogout }: { onLogout: () => void }) {
     setMsg(null);
     const num = (s: string) => { const v = parseDecimal(s); if (v === null || Number.isNaN(v)) throw new Error("Valeur numérique invalide"); return v; };
     const cents = (s: string) => { const v = parseMoney(s); if (v === null || Number.isNaN(v)) throw new Error("Montant invalide"); return v; };
+    const opt = <T,>(v: string, fn: (v: string) => T): T | null => (v.trim() ? fn(v) : null);
     try {
       const s: Settings = {
         vehicle_name: f.vehicle_name,
@@ -43,6 +50,12 @@ export default function SettingsPage({ onLogout }: { onLogout: () => void }) {
         fuel_consumption_l_per_100km: num(f.fuel_consumption_l_per_100km),
         fuel_price_cents_per_l: cents(f.fuel_price_cents_per_l),
         home_price_cents_per_kwh: cents(f.home_price_cents_per_kwh),
+        acquisition_type: f.acquisition_type as Settings["acquisition_type"],
+        leasing_down_payment_cents: opt(f.leasing_down_payment_cents, cents),
+        leasing_monthly_cents: opt(f.leasing_monthly_cents, cents),
+        leasing_interest_rate: opt(f.leasing_interest_rate, num),
+        leasing_start_date: f.leasing_start_date || null,
+        leasing_months: opt(f.leasing_months, (v) => Math.round(num(v))),
       };
       setBusy(true);
       setF(toForm(await api.saveSettings(s)));
@@ -64,10 +77,20 @@ export default function SettingsPage({ onLogout }: { onLogout: () => void }) {
     <form className="form" onSubmit={submit}>
       <h2 className="overline" style={{ margin: "8px 0 0" }}>Véhicule</h2>
       <Field label="Nom">{(id) => <input id={id} value={f.vehicle_name} onChange={set("vehicle_name")} required maxLength={100} />}</Field>
-      <div className="form-row">
-        <Field label="Date d'achat">{(id) => <input id={id} type="date" value={f.purchase_date} onChange={set("purchase_date")} />}</Field>
-        <Field label={`Prix d'achat (${f.currency})`}>{(id) => <input id={id} inputMode="decimal" value={f.purchase_price_cents} onChange={set("purchase_price_cents")} />}</Field>
-      </div>
+      <Segmented
+        label="Mode d'acquisition"
+        options={[{ value: "purchase", label: "Achat" }, { value: "leasing", label: "Leasing" }]}
+        value={f.acquisition_type as "purchase" | "leasing"}
+        onChange={(v) => setF({ ...f, acquisition_type: v })}
+      />
+      {f.acquisition_type === "purchase" ? (
+        <div className="form-row">
+          <Field label="Date d'achat">{(id) => <input id={id} type="date" value={f.purchase_date} onChange={set("purchase_date")} />}</Field>
+          <Field label={`Prix d'achat (${f.currency})`}>{(id) => <input id={id} inputMode="decimal" value={f.purchase_price_cents} onChange={set("purchase_price_cents")} />}</Field>
+        </div>
+      ) : (
+        <LeasingFields f={f} set={set} />
+      )}
       <div className="form-row">
         <Field label="Km à l'achat">{(id) => <input id={id} inputMode="numeric" value={f.initial_odometer_km} onChange={set("initial_odometer_km")} required />}</Field>
         <Field label="Km actuels" hint="Le plus haut entre ceci et tes saisies.">{(id) => <input id={id} inputMode="numeric" value={f.current_odometer_km} onChange={set("current_odometer_km")} />}</Field>
@@ -88,5 +111,30 @@ export default function SettingsPage({ onLogout }: { onLogout: () => void }) {
       <Button variant="danger" onClick={logout}>Se déconnecter</Button>
     </form>
     </div>
+  );
+}
+
+function LeasingFields({ f, set }: { f: Form; set: (k: keyof Form) => (e: { target: { value: string } }) => void }) {
+  const down = parseMoney(f.leasing_down_payment_cents) ?? 0;
+  const monthly = parseMoney(f.leasing_monthly_cents);
+  const months = parseDecimal(f.leasing_months);
+  const total = monthly && months && !Number.isNaN(monthly) && !Number.isNaN(months) && !Number.isNaN(down) ? down + monthly * Math.round(months) : null;
+  return (
+    <>
+      <div className="form-row">
+        <Field label={`Acompte (${f.currency})`}>{(id) => <input id={id} inputMode="decimal" value={f.leasing_down_payment_cents} onChange={set("leasing_down_payment_cents")} />}</Field>
+        <Field label={`Mensualité (${f.currency})`}>{(id) => <input id={id} inputMode="decimal" value={f.leasing_monthly_cents} onChange={set("leasing_monthly_cents")} required />}</Field>
+      </div>
+      <div className="form-row">
+        <Field label="Début du contrat">{(id) => <input id={id} type="date" value={f.leasing_start_date} onChange={set("leasing_start_date")} required />}</Field>
+        <Field label="Durée (mois)">{(id) => <input id={id} inputMode="numeric" value={f.leasing_months} onChange={set("leasing_months")} required />}</Field>
+      </div>
+      <Field label="Taux d'intérêt annuel (%)" hint="Informatif : il est déjà compris dans la mensualité.">
+        {(id) => <input id={id} inputMode="decimal" value={f.leasing_interest_rate} onChange={set("leasing_interest_rate")} />}
+      </Field>
+      {total !== null && (
+        <div className="muted">Coût total du contrat : {f.currency} {money(total)} (acompte + {Math.round(months!)} mensualités). Compté mois par mois dans les dépenses.</div>
+      )}
+    </>
   );
 }

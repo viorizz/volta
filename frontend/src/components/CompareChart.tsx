@@ -112,7 +112,7 @@ function continuousMonths(ms: Month[]): Month[] {
   const last = ms[ms.length - 1].month;
   for (let guard = 0; guard < 240; guard++) {
     const key = `${y}-${String(mo).padStart(2, "0")}`;
-    out.push(byKey.get(key) ?? { month: key, charge_cost_cents: 0, energy_kwh: 0, expense_cents: 0, fuel_equivalent_cents: 0 });
+    out.push(byKey.get(key) ?? { month: key, charge_cost_cents: 0, energy_kwh: 0, expense_cents: 0, fixed_cents: 0, fuel_equivalent_cents: 0 });
     if (key === last) break;
     mo++;
     if (mo > 12) { mo = 1; y++; }

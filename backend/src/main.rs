@@ -2,6 +2,7 @@ mod auth;
 mod charges;
 mod error;
 mod expenses;
+mod fixed_costs;
 mod settings;
 mod stats;
 mod tesla;
@@ -47,6 +48,8 @@ pub fn router(state: AppState) -> Router {
         .route("/api/charges/{id}", put(charges::update).delete(charges::remove))
         .route("/api/expenses", get(expenses::list).post(expenses::create))
         .route("/api/expenses/{id}", put(expenses::update).delete(expenses::remove))
+        .route("/api/fixed-costs", get(fixed_costs::list).post(fixed_costs::create))
+        .route("/api/fixed-costs/{id}", put(fixed_costs::update).delete(fixed_costs::remove))
         .route("/api/settings", get(settings::get).put(settings::put))
         .route("/api/stats", get(stats::get))
         .route("/api/tesla/status", get(tesla::status))

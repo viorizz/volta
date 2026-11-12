@@ -5,6 +5,7 @@ import { useLoad } from "../useLoad";
 import { CATEGORIES, dateShort, km, localDate, money, monthLabel, parseDecimal, parseMoney } from "../format";
 import { Badge, Button, Field, List, ListRow, Sheet } from "../ui";
 import { groupByMonth } from "./Charges";
+import FixedCosts from "../components/FixedCosts";
 
 export default function Expenses() {
   const { data, error, reload } = useLoad(() => api.expenses());
@@ -14,7 +15,9 @@ export default function Expenses() {
 
   return (
     <>
-      <section className="section">
+      <FixedCosts />
+      <section className="section" style={{ marginTop: 16 }}>
+        <div className="section-head"><h2>Dépenses ponctuelles</h2></div>
         <div className="actions">
           <Button icon={<Plus size={20} />} onClick={() => setEditing("new")}>Ajouter une dépense</Button>
         </div>
@@ -92,7 +95,7 @@ function ExpenseForm({ expense, currency, onDone }: { expense?: Expense; currenc
 
   return (
     <form className="form" onSubmit={submit}>
-      <Field label="Catégorie">
+      <Field label="Catégorie" hint={category === "insurance" ? "Une prime annuelle ou mensuelle va plutôt dans les frais fixes : ici, elle serait comptée en double." : undefined}>
         {(id) => (
           <select id={id} value={category} onChange={(e) => setCategory(e.target.value as Category)}>
             {Object.entries(CATEGORIES).map(([v, l]) => <option key={v} value={v}>{l}</option>)}

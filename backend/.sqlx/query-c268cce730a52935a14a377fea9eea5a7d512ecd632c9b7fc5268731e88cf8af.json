@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT count(*) FROM fixed_costs WHERE kind = 'insurance' AND coverage <> 'full' AND (end_date IS NULL OR end_date >= CURRENT_DATE)",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "count",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "c268cce730a52935a14a377fea9eea5a7d512ecd632c9b7fc5268731e88cf8af"
+}

@@ -1,4 +1,4 @@
-import type { Category, Network } from "./api";
+import type { Category, Coverage, FixedKind, Network } from "./api";
 
 /** Point décimal et espace fine pour les milliers : 1 284.50 (règle du design system). */
 const nf = (min: number, max: number) => {
@@ -61,3 +61,23 @@ export function localDateTime(d = new Date()) {
   const p = (n: number) => String(n).padStart(2, "0");
   return `${localDate(d)}T${p(d.getHours())}:${p(d.getMinutes())}`;
 }
+
+export const FIXED_KINDS: Record<FixedKind | "leasing", string> = {
+  leasing: "Leasing",
+  insurance: "Assurance",
+  vehicle_option: "Options du véhicule",
+  charging_subscription: "Abonnements de recharge",
+  other: "Autres frais fixes",
+};
+/** Libellés courts pour les pastilles. */
+export const FIXED_SHORT: Record<FixedKind, string> = {
+  insurance: "Assurance",
+  vehicle_option: "Option",
+  charging_subscription: "Recharge",
+  other: "Autre",
+};
+export const COVERAGES: Record<Coverage, string> = {
+  full: "Casco complète",
+  partial: "Casco partielle",
+  liability: "RC seule",
+};

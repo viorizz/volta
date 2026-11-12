@@ -2,7 +2,7 @@ import { useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import { api } from "../api";
 import { useLoad } from "../useLoad";
-import { CATEGORIES, NETWORKS, km, kwh, localDate, money, moneyRound } from "../format";
+import { CATEGORIES, FIXED_KINDS, NETWORKS, km, kwh, localDate, money, moneyRound } from "../format";
 import { List, ListRow, Segmented, StatTile } from "../ui";
 import CompareChart from "../components/CompareChart";
 
@@ -35,7 +35,7 @@ export default function Overview() {
             <div className="overline">{period === "all" ? "Dépensé depuis le début" : period === "year" ? "Dépensé cette année" : "Dépensé ce mois-ci"}</div>
             <div className="hero-value">{moneyRound(s.total_cost_cents)}<small>{s.currency}</small></div>
             <div className="muted">
-              {s.charge_count} recharge{s.charge_count > 1 ? "s" : ""} · {s.expense_count} dépense{s.expense_count > 1 ? "s" : ""}
+              {s.charge_count} recharge{s.charge_count > 1 ? "s" : ""} · {s.expense_count} dépense{s.expense_count > 1 ? "s" : ""}{s.fixed_cents > 0 ? " · frais fixes inclus" : ""}
             </div>
             {period === "all" && s.purchase_price_cents ? (
               <div className="muted">Sans l'achat ({s.currency} {moneyRound(s.purchase_price_cents)})</div>
@@ -52,6 +52,7 @@ export default function Overview() {
                 unit={s.currency}
                 note={`Essence : ${s.currency} ${money(s.comparison.fuel_per_100km_cents)}`}
               />
+              <StatTile label="Frais fixes" value={money(s.fixed_cents)} unit={s.currency} note={s.by_fixed.some((g) => g.key === "leasing") ? "Leasing, assurance, abonnements" : "Assurance, abonnements"} />
               <StatTile label="Autres dépenses" value={money(s.expense_cents)} unit={s.currency} note={`${s.expense_count} ligne${s.expense_count > 1 ? "s" : ""}`} />
             </div>
             {s.comparison.km_per_kwh !== null && !s.comparison.efficiency_plausible && (
@@ -94,6 +95,17 @@ export default function Overview() {
             </section>
           )}
 
+          {s.by_fixed.length > 0 && (
+            <section className="section">
+              <div className="section-head"><h2>Frais fixes</h2></div>
+              <List>
+                {s.by_fixed.map((g) => (
+                  <ListRow key={g.key} title={FIXED_KINDS[g.key as keyof typeof FIXED_KINDS] ?? g.key} trailing={`${s.currency} ${money(g.cost_cents)}`} />
+                ))}
+              </List>
+            </section>
+          )}
+
           {s.by_category.length > 0 && (
             <section className="section">
               <div className="section-head"><h2>Par catégorie</h2></div>
@@ -106,7 +118,7 @@ export default function Overview() {
             </section>
           )}
 
-          {s.charge_count === 0 && s.expense_count === 0 && (
+          {s.charge_count === 0 && s.expense_count === 0 && s.fixed_cents === 0 && (
             <div className="empty">Rien pour cette période. Ajoute une recharge ou une dépense pour commencer.</div>
           )}
         </>

@@ -7,7 +7,7 @@ use axum::{
 use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 
-use crate::{auth::AuthUser, error::AppResult, settings, settings::Settings, AppState};
+use crate::{auth::AuthUser, error::AppResult, fixed_costs, settings, settings::Settings, AppState};
 
 #[derive(Deserialize)]
 pub struct StatsQuery {
@@ -29,6 +29,7 @@ pub struct Month {
     charge_cost_cents: i64,
     energy_kwh: f64,
     expense_cents: i64,
+    fixed_cents: i64,
     fuel_equivalent_cents: Option<i64>,
 }
 
@@ -60,6 +61,9 @@ pub struct Stats {
     expense_cents: i64,
     expense_count: i64,
     by_category: Vec<Group>,
+    /// Frais fixes et leasing répartis sur la période.
+    fixed_cents: i64,
+    by_fixed: Vec<Group>,
     total_cost_cents: i64,
     purchase_price_cents: Option<i64>,
     comparison: Comparison,
@@ -165,6 +169,24 @@ pub async fn get(_: AuthUser, State(st): State<AppState>, Query(q): Query<StatsQ
         months.entry(r.m.clone()).or_insert_with(|| Month { month: r.m, ..Default::default() }).expense_cents = r.cost;
     }
 
+    // Frais fixes et leasing, mois par mois jusqu'à aujourd'hui (fuseau de l'app).
+    let today = sqlx::query_scalar!(r#"SELECT (now() AT TIME ZONE $1)::date AS "d!""#, tz).fetch_one(db).await?;
+    let fixed = fixed_costs::accrue(&fixed_costs::load_all(db).await?, &s, q.from, today);
+    let mut fixed_by_kind: BTreeMap<String, i64> = BTreeMap::new();
+    for (month, kinds) in &fixed {
+        let sum: i64 = kinds.values().sum();
+        months.entry(month.clone()).or_insert_with(|| Month { month: month.clone(), ..Default::default() }).fixed_cents = sum;
+        for (k, v) in kinds {
+            *fixed_by_kind.entry(k.clone()).or_default() += v;
+        }
+    }
+    let fixed_cents: i64 = fixed_by_kind.values().sum();
+    let mut by_fixed: Vec<Group> = fixed_by_kind
+        .into_iter()
+        .map(|(key, cost_cents)| Group { key, cost_cents, energy_kwh: 0.0, count: 0 })
+        .collect();
+    by_fixed.sort_by_key(|g| -g.cost_cents);
+
     Ok(Json(Stats {
         currency: s.currency.clone(),
         from: q.from,
@@ -175,7 +197,9 @@ pub async fn get(_: AuthUser, State(st): State<AppState>, Query(q): Query<StatsQ
         expense_cents,
         expense_count,
         by_category,
-        total_cost_cents: charge_cost_cents + expense_cents,
+        fixed_cents,
+        by_fixed,
+        total_cost_cents: charge_cost_cents + expense_cents + fixed_cents,
         purchase_price_cents: s.purchase_price_cents,
         comparison,
         monthly: months.into_values().collect(),
@@ -197,6 +221,12 @@ mod tests {
             fuel_consumption_l_per_100km: 7.0,
             fuel_price_cents_per_l: 200,
             home_price_cents_per_kwh: 27,
+            acquisition_type: "purchase".into(),
+            leasing_down_payment_cents: None,
+            leasing_monthly_cents: None,
+            leasing_interest_rate: None,
+            leasing_start_date: None,
+            leasing_months: None,
         }
     }
 
