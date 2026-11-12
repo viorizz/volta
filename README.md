@@ -77,12 +77,7 @@ Importe automatiquement l'historique Supercharger (endpoint `charging_history`),
    - Allowed Redirect URI : `https://<domaine>/api/tesla/callback`
    - Scopes : *Vehicle Information* et *Vehicle Charging Management*
    - Ajoute un moyen de paiement : sans lui, Tesla désactive l'application. Le crédit mensuel de 10 $ couvre largement un usage personnel.
-3. **Identifiants** : ajoute à `/opt/volta/.env`
-   ```
-   TESLA_CLIENT_ID=...
-   TESLA_CLIENT_SECRET=...
-   ```
-   puis `cd /opt/volta && docker compose up -d`.
+3. **Identifiants** : dans GitHub, *Settings → Secrets and variables → Actions → Secrets*, ajoute `TESLA_CLIENT_ID` et `TESLA_CLIENT_SECRET`, puis relance le workflow. Le déploiement les écrit dans `/opt/volta/.env` (droits 600). Tu peux aussi les écrire toi-même dans ce fichier : sans secrets GitHub, le déploiement n'y touche pas.
 4. **Enregistrement du domaine** (une seule fois) :
    ```bash
    cd /opt/volta && docker compose run --rm api volta-api tesla-register

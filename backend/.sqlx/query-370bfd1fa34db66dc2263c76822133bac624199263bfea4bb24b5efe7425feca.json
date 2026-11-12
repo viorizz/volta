@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE tesla_auth SET access_token = $1, refresh_token = $2 WHERE id = 1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "370bfd1fa34db66dc2263c76822133bac624199263bfea4bb24b5efe7425feca"
+}
